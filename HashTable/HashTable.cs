@@ -7,10 +7,10 @@ namespace HashTable
     {
         private struct Entry
         {
-            public int hashCode;
-            public int next;
-            public TKey key;
-            public TValue value;
+            public int HashCode;
+            public int Next;
+            public TKey Key;
+            public TValue Value;
         }
 
         private readonly int[] primes =
@@ -31,7 +31,7 @@ namespace HashTable
         public HashTable(int capacity = 0)
         {
             if (capacity < 0)
-                throw new ArgumentException();
+                throw new ArgumentException("Capacity value should not be negative number");
             Initialize(capacity);
         }
 
@@ -41,7 +41,7 @@ namespace HashTable
             {
                 var i = FindEntry(key);
                 if (i >= 0)
-                    return entries[i].value;
+                    return entries[i].Value;
                 throw new KeyNotFoundException();
             }
             set { Insert(key, value); }
@@ -60,20 +60,25 @@ namespace HashTable
             var hashCode = key.GetHashCode();
             var targetBucket = hashCode % buckets.Length;
 
-            for (var i = buckets[targetBucket]; i >= 0; i = entries[i].next)
+            for (var i = buckets[targetBucket]; i >= 0; i = entries[i].Next)
             {
-                if (entries[i].hashCode == hashCode && entries[i].key.CompareTo(key) == 0)
+                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
                 {
-                    entries[i].value = value;
+                    entries[i].Value = value;
                     return;
                 }
             }
 
+            AddNewEntry(key, value, hashCode, targetBucket);
+        }
+
+        private void AddNewEntry(TKey key, TValue value, int hash, int targetBucket)
+        {
             int index;
             if (freeCount > 0)
             {
                 index = freeList;
-                freeList = entries[index].next;
+                freeList = entries[index].Next;
                 freeCount--;
             }
             else
@@ -81,12 +86,12 @@ namespace HashTable
                 if (Count == entries.Length)
                 {
                     Resize(GetPrime(Count));
-                    targetBucket = hashCode % buckets.Length;
+                    targetBucket = hash % buckets.Length;
                 }
                 index = Count;
                 Count++;
             }
-            entries[index] = new Entry { hashCode = hashCode, next = buckets[targetBucket], key = key, value = value };
+            entries[index] = new Entry { HashCode = hash, Next = buckets[targetBucket], Key = key, Value = value };
             buckets[targetBucket] = index;
         }
 
@@ -99,10 +104,10 @@ namespace HashTable
             Array.Copy(entries, 0, newEntries, 0, Count);
             for (var i = 0; i < Count; i++)
             {
-                if (newEntries[i].hashCode >= 0)
+                if (newEntries[i].HashCode >= 0)
                 {
-                    var bucket = newEntries[i].hashCode % newSize;
-                    newEntries[i].next = newBuckets[bucket];
+                    var bucket = newEntries[i].HashCode % newSize;
+                    newEntries[i].Next = newBuckets[bucket];
                     newBuckets[bucket] = i;
                 }
             }
@@ -110,32 +115,30 @@ namespace HashTable
             entries = newEntries;
         }
 
-        public bool Remove(TKey key)
+        public void Remove(TKey key)
         {
             if (key == null)
                 throw new ArgumentNullException();
 
-            if (buckets != null)
+            var hashCode = key.GetHashCode();
+            var bucket = hashCode % buckets.Length;
+            var last = -1;
+            for (var i = buckets[bucket]; i >= 0; last = i, i = entries[i].Next)
             {
-                var hashCode = key.GetHashCode();
-                var bucket = hashCode % buckets.Length;
-                var last = -1;
-                for (var i = buckets[bucket]; i >= 0; last = i, i = entries[i].next)
+                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
                 {
-                    if (entries[i].hashCode == hashCode && entries[i].key.CompareTo(key) == 0)
-                    {
-                        if (last < 0)
-                            buckets[bucket] = entries[i].next;
-                        else
-                            entries[last].next = entries[i].next;
-                        entries[i] = new Entry { hashCode = -1, next = freeList, key = default(TKey), value = default(TValue) };
-                        freeList = i;
-                        freeCount++;
-                        Count--;
-                        return true;
-                    }
+                    if (last < 0)
+                        buckets[bucket] = entries[i].Next;
+                    else
+                        entries[last].Next = entries[i].Next;
+                    entries[i] = new Entry { HashCode = -1, Next = freeList, Key = default(TKey), Value = default(TValue) };
+                    freeList = i;
+                    freeCount++;
+                    Count--;
+                    return;
                 }
             }
+
             throw new KeyNotFoundException();
         }
 
@@ -144,13 +147,11 @@ namespace HashTable
             if (key == null)
                 throw new ArgumentNullException();
 
-            if (buckets != null)
-            {
-                var hashCode = key.GetHashCode();
-                for (var i = buckets[hashCode % buckets.Length]; i >= 0; i = entries[i].next)
-                    if (entries[i].hashCode == hashCode && entries[i].key.CompareTo(key) == 0)
-                        return i;
-            }
+            var hashCode = key.GetHashCode();
+            for (var i = buckets[hashCode % buckets.Length]; i >= 0; i = entries[i].Next)
+                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
+                    return i;
+            
             return -1;
         }
 
@@ -159,7 +160,7 @@ namespace HashTable
         {
             var size = GetPrime(capacity);
             buckets = new int[size];
-            for (int i = 0; i < buckets.Length; i++)
+            for (var i = 0; i < buckets.Length; i++)
                 buckets[i] = -1;
             entries = new Entry[size];
             freeList = -1;
