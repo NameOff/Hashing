@@ -50,7 +50,7 @@ namespace ExtendibleHashing
 
         public void Remove(TKey key)
         {
-            throw new NotImplementedException();
+            Count--;
         }
 
         public TValue this[TKey key]
@@ -81,6 +81,8 @@ namespace ExtendibleHashing
 
             if (bucket.IsFull && bucket.LocalDepth < globalDepth)
             {
+                if (!bucket.Entries.ContainsKey(key))
+                    Count++;
                 bucket.Put(key, value);
                 var bucket1 = new Bucket();
                 var bucket2 = new Bucket();
@@ -118,6 +120,8 @@ namespace ExtendibleHashing
             }
             else
             {
+                if (!bucket.Entries.ContainsKey(key))
+                    Count++;
                 bucket.Put(key, value);
             }
         }
