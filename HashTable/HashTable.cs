@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HashTable
 {
-    public class HashTable<TKey, TValue> where TKey : IComparable
+    public class HashTable<TKey, TValue> : IDictionary<TKey, TValue>
     {
         private struct Entry
         {
@@ -62,7 +62,7 @@ namespace HashTable
 
             for (var i = buckets[targetBucket]; i >= 0; i = entries[i].Next)
             {
-                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
+                if (entries[i].HashCode == hashCode && entries[i].Key.Equals(key))
                 {
                     entries[i].Value = value;
                     return;
@@ -125,7 +125,7 @@ namespace HashTable
             var last = -1;
             for (var i = buckets[bucket]; i >= 0; last = i, i = entries[i].Next)
             {
-                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
+                if (entries[i].HashCode == hashCode && entries[i].Key.Equals(key))
                 {
                     if (last < 0)
                         buckets[bucket] = entries[i].Next;
@@ -149,7 +149,7 @@ namespace HashTable
 
             var hashCode = key.GetHashCode();
             for (var i = buckets[hashCode % buckets.Length]; i >= 0; i = entries[i].Next)
-                if (entries[i].HashCode == hashCode && entries[i].Key.CompareTo(key) == 0)
+                if (entries[i].HashCode == hashCode && entries[i].Key.Equals(key))
                     return i;
             
             return -1;

@@ -10,12 +10,12 @@ namespace Tests
     [TestFixture]
     public class HashTable_Should
     {
-        private static HashTable<int, string> hashTable;
+        private static HashTable.IDictionary<int, string> hashTable;
 
         [SetUp]
         public void SetUp()
         {
-            hashTable = new HashTable<int, string>();
+            hashTable = new LinearHashing<int, string>();
         }
 
         [Test]
@@ -31,6 +31,13 @@ namespace Tests
             for (var i = 0; i < 10000; i++)
                 hashTable[i] = "Hello";
             hashTable.Count.Should().Be(10000);
+        }
+
+        [Test]
+        public void Test()
+        {
+            for (var i = 0; i < 4000000; i++)
+                hashTable[i] = "Hello";
         }
 
         [Test]
@@ -57,6 +64,18 @@ namespace Tests
             hashTable[100] = "Hello";
             hashTable.Remove(100);
             Assert.Throws<KeyNotFoundException>(() => Console.WriteLine(hashTable[100]));
+        }
+
+        [Test]
+        public void ThrowKeyNotFoundException_AfterFindNonExistingKey()
+        {
+            Assert.Throws<KeyNotFoundException>(() => Console.WriteLine(hashTable[42]));
+        }
+
+        [Test]
+        public void ThrowArgunetException_AfterInitializeWithNegativeValueCapacity()
+        {
+            //Assert.Throws<ArgumentException>(() => hashTable = new Hash<int, string>(-1));
         }
 
         [Test]
