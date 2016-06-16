@@ -6,17 +6,42 @@ namespace ExtendibleHashing
 {
     public class EHashMap<TKey, TValue> : HashTable.IDictionary<TKey, TValue>
     {
+        public class Bucket
+        {
+            public int LocalDepth;
+            private const int Capacity = 3;
+            public readonly Dictionary<TKey, TValue> Entries;
+
+            public Bucket()
+            {
+                LocalDepth = 0;
+                Entries = new Dictionary<TKey, TValue>();
+            }
+
+            public bool IsFull => Entries.Count > Capacity;
+
+            public void Put(TKey key, TValue value)
+            {
+                Entries.Add(key, value);
+            }
+
+            public TValue Get(TKey key)
+            {
+                return Entries[key];
+            }
+        }
+
         private int globalDepth;
-        private readonly List<Bucket<TKey, TValue>> buckets;
+        private readonly List<Bucket> buckets;
         
         public EHashMap()
         {
-            buckets = new List<Bucket<TKey, TValue>> {new Bucket<TKey, TValue>()};
+            buckets = new List<Bucket> {new Bucket()};
         }
 
         private Func<int, int> KeyFunc => hash => hash & ((1 << globalDepth) - 1);
 
-        private Bucket<TKey, TValue> GetBucket(TKey key)
+        private Bucket GetBucket(TKey key)
         {
             var hash = key.GetHashCode();
             var directory = buckets[KeyFunc(hash)];
@@ -49,7 +74,7 @@ namespace ExtendibleHashing
             var bucket = GetBucket(key);
             if (bucket.IsFull && bucket.LocalDepth == globalDepth)
             {
-                var bucketsCopy = new List<Bucket<TKey, TValue>>(buckets);
+                var bucketsCopy = new List<Bucket>(buckets);
                 buckets.AddRange(bucketsCopy);
                 globalDepth++;
             }
@@ -57,8 +82,8 @@ namespace ExtendibleHashing
             if (bucket.IsFull && bucket.LocalDepth < globalDepth)
             {
                 bucket.Put(key, value);
-                var bucket1 = new Bucket<TKey, TValue>();
-                var bucket2 = new Bucket<TKey, TValue>();
+                var bucket1 = new Bucket();
+                var bucket2 = new Bucket();
 
                 foreach (var key2 in bucket.Entries.Keys)
                 {
@@ -95,31 +120,6 @@ namespace ExtendibleHashing
             {
                 bucket.Put(key, value);
             }
-        }
-    }
-
-    public class Bucket<TKey, TValue>
-    {
-        public int LocalDepth;
-        private const int Capacity = 3;
-        public readonly Dictionary<TKey, TValue> Entries;
-
-        public Bucket()
-        {
-            LocalDepth = 0;
-            Entries = new Dictionary<TKey, TValue>();
-        }
-
-        public bool IsFull => Entries.Count > Capacity;
-
-        public void Put(TKey key, TValue value)
-        {
-            Entries.Add(key, value);
-        }
-
-        public TValue Get(TKey key)
-        {
-            return Entries[key];
         }
     }
 }
