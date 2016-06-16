@@ -118,7 +118,6 @@ namespace LinearHashing
 
         private void InsertToBucket(Record record, int bucketIndex, out bool countMustChange)
         {
-            record.Next = null;
             if (buckets[bucketIndex] == null)
                 buckets[bucketIndex] = record;
             else
@@ -161,6 +160,7 @@ namespace LinearHashing
                     else
                         buckets[split] = record.Next;
                     bool _;
+                    record.Next = null;
                     InsertToBucket(record, bucketIndex, out _);
                 }
                 if (record.Next != null)

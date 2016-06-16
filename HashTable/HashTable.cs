@@ -131,7 +131,13 @@ namespace HashTable
                         buckets[bucket] = entries[i].Next;
                     else
                         entries[last].Next = entries[i].Next;
-                    entries[i] = new Entry { HashCode = -1, Next = freeList, Key = default(TKey), Value = default(TValue) };
+                    entries[i] = new Entry
+                    {
+                        HashCode = -1,
+                        Next = freeList,
+                        Key = default(TKey),
+                        Value = default(TValue)
+                    };
                     freeList = i;
                     freeCount++;
                     Count--;
@@ -166,7 +172,7 @@ namespace HashTable
             freeList = -1;
         }
 
-        private bool IsPrime(int candidate)
+        private static bool IsPrime(int candidate)
         {
             if ((candidate & 1) == 0)
                 return candidate == 2;

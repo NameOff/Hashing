@@ -59,6 +59,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ExtendibleHashing\ExtendibleHashing.csproj">
+      <Project>{52867ae3-8b22-4f13-9117-6860d309cb3f}</Project>
+      <Name>ExtendibleHashing</Name>
+    </ProjectReference>
     <ProjectReference Include="..\HashTable\HashTable.csproj">
       <Project>{4d943d1b-ded9-41e8-8ac0-3eebdd1c5804}</Project>
       <Name>HashTable</Name>

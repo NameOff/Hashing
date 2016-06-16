@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using ExtendibleHashing;
 using FluentAssertions;
 using NUnit.Framework;
 using HashTable;
@@ -15,7 +16,7 @@ namespace Tests
         [SetUp]
         public void SetUp()
         {
-            hashTable = new LinearHashing<int, string>();
+            hashTable = new EHashMap<int, string>();
         }
 
         [Test]
@@ -73,9 +74,9 @@ namespace Tests
         }
 
         [Test]
-        public void ThrowArgunetException_AfterInitializeWithNegativeValueCapacity()
+        public void ThrowArgumentException_AfterInitializeWithNegativeValueCapacity()
         {
-            //Assert.Throws<ArgumentException>(() => hashTable = new Hash<int, string>(-1));
+            Assert.Throws<ArgumentException>(() => hashTable = new EHashMap<int, string>());
         }
 
         [Test]

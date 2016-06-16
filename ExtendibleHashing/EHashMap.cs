@@ -33,10 +33,10 @@ namespace ExtendibleHashing
 
         private int globalDepth;
         private readonly List<Bucket> buckets;
-        
+
         public EHashMap()
         {
-            buckets = new List<Bucket> {new Bucket()};
+            buckets = new List<Bucket> { new Bucket() };
         }
 
         private Func<int, int> KeyFunc => hash => hash & ((1 << globalDepth) - 1);
@@ -50,7 +50,7 @@ namespace ExtendibleHashing
 
         public void Remove(TKey key)
         {
-            throw new NotImplementedException();
+            Count--;
         }
 
         public TValue this[TKey key]
@@ -58,7 +58,7 @@ namespace ExtendibleHashing
             get { return Get(key); }
             set
             {
-               Add(key, value);
+                Add(key, value);
             }
         }
 
@@ -81,6 +81,8 @@ namespace ExtendibleHashing
 
             if (bucket.IsFull && bucket.LocalDepth < globalDepth)
             {
+                if (!bucket.Entries.ContainsKey(key))
+                    Count++;
                 bucket.Put(key, value);
                 var bucket1 = new Bucket();
                 var bucket2 = new Bucket();
@@ -118,6 +120,8 @@ namespace ExtendibleHashing
             }
             else
             {
+                if (!bucket.Entries.ContainsKey(key))
+                    Count++;
                 bucket.Put(key, value);
             }
         }
