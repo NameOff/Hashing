@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HashTable", "HashTable\HashTable.csproj", "{4D943D1B-DED9-41E8-8AC0-3EEBDD1C5804}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinearHashing", "LinearHashing\LinearHashing.csproj", "{6E886140-0E1F-4120-B249-26460E40064C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{298D740E-E022-48FA-B42C-C52336F03E8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EHashMap", "..\[3] OOP\Hashing\Hashing\EHashMap.csproj", "{2A42CFF9-90B4-4240-A8F3-346E5E81155F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{298D740E-E022-48FA-B42C-C52336F03E8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{298D740E-E022-48FA-B42C-C52336F03E8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{298D740E-E022-48FA-B42C-C52336F03E8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A42CFF9-90B4-4240-A8F3-346E5E81155F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A42CFF9-90B4-4240-A8F3-346E5E81155F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A42CFF9-90B4-4240-A8F3-346E5E81155F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A42CFF9-90B4-4240-A8F3-346E5E81155F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
