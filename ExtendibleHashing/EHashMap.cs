@@ -1,28 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using HashTable;
 
 namespace ExtendibleHashing
 {
     public class EHashMap<TKey, TValue> : HashTable.IDictionary<TKey, TValue>
     {
-        public class Bucket
+        private class Bucket
         {
             public int LocalDepth;
-            private const int Capacity = 3;
+            public static int Capacity;
             public readonly Dictionary<TKey, TValue> Entries;
 
             public Bucket()
             {
-                LocalDepth = 0;
-                Entries = new Dictionary<TKey, TValue>();
+                LocalDepth = 1;
+                Entries = new Dictionary<TKey, TValue>(Capacity);
             }
 
-            public bool IsFull => Entries.Count > Capacity;
+            public bool IsFull => Entries.Count >= Capacity;
 
             public void Put(TKey key, TValue value)
             {
-                Entries.Add(key, value);
+                Entries[key] = value;
             }
 
             public TValue Get(TKey key)
@@ -33,23 +35,32 @@ namespace ExtendibleHashing
 
         private int globalDepth;
         private readonly List<Bucket> buckets;
+        private Stopwatch watch = new Stopwatch();
 
-        public EHashMap()
+        public EHashMap(int capacity=1000)
         {
-            buckets = new List<Bucket> { new Bucket() };
+            if (capacity < 0)
+                throw new ArgumentException();
+            Bucket.Capacity = capacity;
+            buckets = new List<Bucket> { new Bucket(), new Bucket() };
+            globalDepth = 1;
         }
 
         private Func<int, int> KeyFunc => hash => hash & ((1 << globalDepth) - 1);
 
-        private Bucket GetBucket(TKey key)
+        private int GetBucketIndex(TKey key)
         {
             var hash = key.GetHashCode();
-            var directory = buckets[KeyFunc(hash)];
-            return directory;
+            return KeyFunc(hash);
         }
 
         public void Remove(TKey key)
         {
+            var bucketIndex = GetBucketIndex(key);
+            var bucket = buckets[bucketIndex];
+            if (!bucket.Entries.ContainsKey(key))
+                throw new KeyNotFoundException();
+            bucket.Entries.Remove(key);
             Count--;
         }
 
@@ -63,27 +74,50 @@ namespace ExtendibleHashing
         }
 
         public int Count { get; private set; }
-
+        
         public TValue Get(TKey key)
         {
-            return GetBucket(key).Get(key);
+            Console.WriteLine(watch.ElapsedMilliseconds);
+            var bucket = buckets[GetBucketIndex(key)];
+            return bucket.Get(key);
         }
 
         public void Add(TKey key, TValue value)
         {
-            var bucket = GetBucket(key);
+            var bucketIndex = GetBucketIndex(key);
+            if (bucketIndex - buckets.Count / 2 >=0 && buckets[bucketIndex] == buckets[bucketIndex - buckets.Count/2])
+                bucketIndex -= buckets.Count/2;
+            var bucket = buckets[bucketIndex];
+
             if (bucket.IsFull && bucket.LocalDepth == globalDepth)
             {
                 var bucketsCopy = new List<Bucket>(buckets);
                 buckets.AddRange(bucketsCopy);
                 globalDepth++;
             }
-
+            
             if (bucket.IsFull && bucket.LocalDepth < globalDepth)
             {
                 if (!bucket.Entries.ContainsKey(key))
                     Count++;
                 bucket.Put(key, value);
+
+                //buckets[bucketIndex + buckets.Count / 2] = new Bucket();
+                //var newBucket = buckets[bucketIndex + buckets.Count / 2];
+                //var recordsToDelete = new List<TKey>();
+                //foreach (var key2 in bucket.Entries.Keys)
+                //{
+                //    var hash = KeyFunc(key2.GetHashCode());
+                //    if ((hash | (1 << bucket.LocalDepth)) == hash)
+                //        recordsToDelete.Add(key2);
+                //}
+
+                //foreach (var key2 in recordsToDelete)
+                //{
+                //    newBucket.Put(key2, bucket.Get(key2));
+                //    bucket.Entries.Remove(key2);
+                //}
+
                 var bucket1 = new Bucket();
                 var bucket2 = new Bucket();
 
@@ -98,13 +132,13 @@ namespace ExtendibleHashing
                         bucket1.Put(key2, value2);
                 }
 
+                //watch.Start();
                 var indexes = new List<int>();
 
-                for (var i = 0; i < buckets.Count; i++)
-                {
-                    if (buckets[i] == bucket)
-                        indexes.Add(i);
-                }
+                indexes.Add(bucketIndex);
+                indexes.Add(bucketIndex + buckets.Count / 2);
+
+                //watch.Stop();
 
                 foreach (var index in indexes)
                 {
@@ -114,10 +148,12 @@ namespace ExtendibleHashing
                         buckets[index] = bucket1;
                 }
 
+
                 bucket1.LocalDepth = bucket.LocalDepth + 1;
                 bucket2.LocalDepth = bucket.LocalDepth + 1;
 
             }
+
             else
             {
                 if (!bucket.Entries.ContainsKey(key))

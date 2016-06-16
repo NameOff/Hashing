@@ -39,6 +39,7 @@ namespace Tests
         {
             for (var i = 0; i < 4000000; i++)
                 hashTable[i] = "Hello";
+            Console.WriteLine(hashTable[100]);
         }
 
         [Test]
@@ -76,7 +77,7 @@ namespace Tests
         [Test]
         public void ThrowArgumentException_AfterInitializeWithNegativeValueCapacity()
         {
-            Assert.Throws<ArgumentException>(() => hashTable = new EHashMap<int, string>());
+            Assert.Throws<ArgumentException>(() => hashTable = new EHashMap<int, string>(-1));
         }
 
         [Test]
