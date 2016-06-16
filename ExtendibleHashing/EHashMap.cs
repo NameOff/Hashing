@@ -31,18 +31,22 @@ namespace ExtendibleHashing
             {
                 return Entries[key];
             }
+
+            public bool ContainsKey(TKey key)
+            {
+                return Entries.ContainsKey(key);
+            }
         }
 
         private int globalDepth;
         private readonly List<Bucket> buckets;
-        private Stopwatch watch = new Stopwatch();
 
-        public EHashMap(int capacity=1000)
+        public EHashMap(int capacity = 300)
         {
             if (capacity < 0)
                 throw new ArgumentException();
             Bucket.Capacity = capacity;
-            buckets = new List<Bucket> { new Bucket(), new Bucket() };
+            buckets = new List<Bucket> {new Bucket(), new Bucket()};
             globalDepth = 1;
         }
 
@@ -67,99 +71,70 @@ namespace ExtendibleHashing
         public TValue this[TKey key]
         {
             get { return Get(key); }
-            set
-            {
-                Add(key, value);
-            }
+            set { Add(key, value); }
         }
 
         public int Count { get; private set; }
-        
+
         public TValue Get(TKey key)
         {
-            Console.WriteLine(watch.ElapsedMilliseconds);
             var bucket = buckets[GetBucketIndex(key)];
             return bucket.Get(key);
+        }
+
+        private void ExpandBuckets()
+        {
+            var bucketsCopy = new List<Bucket>(buckets);
+            buckets.AddRange(bucketsCopy);
+            globalDepth++;
+        }
+
+        private void SplitBucket(int bucketIndex)
+        {
+            var bucket = buckets[bucketIndex];
+            var newBuckets = new List<Bucket>() {new Bucket(), new Bucket()};
+
+            foreach (var key in bucket.Entries.Keys)
+            {
+                var value = bucket.Get(key);
+                var hash = key.GetHashCode() & ((1 << globalDepth) - 1);
+
+                if ((hash | (1 << bucket.LocalDepth)) == hash)
+                    newBuckets[1].Put(key, value);
+                else
+                    newBuckets[0].Put(key, value);
+            }
+
+            var indexes = new List<int> {bucketIndex, bucketIndex + buckets.Count/2};
+
+            foreach (var index in indexes)
+            {
+                if ((index | (1 << bucket.LocalDepth)) == index)
+                    buckets[index] = newBuckets[1];
+                else
+                    buckets[index] = newBuckets[0];
+                buckets[index].LocalDepth = bucket.LocalDepth + 1;
+            }
         }
 
         public void Add(TKey key, TValue value)
         {
             var bucketIndex = GetBucketIndex(key);
-            if (bucketIndex - buckets.Count / 2 >=0 && buckets[bucketIndex] == buckets[bucketIndex - buckets.Count/2])
+            if (bucketIndex - buckets.Count/2 >= 0 && buckets[bucketIndex] == buckets[bucketIndex - buckets.Count/2])
                 bucketIndex -= buckets.Count/2;
             var bucket = buckets[bucketIndex];
 
-            if (bucket.IsFull && bucket.LocalDepth == globalDepth)
+            if (bucket.IsFull)
             {
-                var bucketsCopy = new List<Bucket>(buckets);
-                buckets.AddRange(bucketsCopy);
-                globalDepth++;
-            }
-            
-            if (bucket.IsFull && bucket.LocalDepth < globalDepth)
-            {
-                if (!bucket.Entries.ContainsKey(key))
-                    Count++;
-                bucket.Put(key, value);
-
-                //buckets[bucketIndex + buckets.Count / 2] = new Bucket();
-                //var newBucket = buckets[bucketIndex + buckets.Count / 2];
-                //var recordsToDelete = new List<TKey>();
-                //foreach (var key2 in bucket.Entries.Keys)
-                //{
-                //    var hash = KeyFunc(key2.GetHashCode());
-                //    if ((hash | (1 << bucket.LocalDepth)) == hash)
-                //        recordsToDelete.Add(key2);
-                //}
-
-                //foreach (var key2 in recordsToDelete)
-                //{
-                //    newBucket.Put(key2, bucket.Get(key2));
-                //    bucket.Entries.Remove(key2);
-                //}
-
-                var bucket1 = new Bucket();
-                var bucket2 = new Bucket();
-
-                foreach (var key2 in bucket.Entries.Keys)
-                {
-                    var value2 = bucket.Get(key2);
-                    var hash = key2.GetHashCode() & ((1 << globalDepth) - 1);
-
-                    if ((hash | (1 << bucket.LocalDepth)) == hash)
-                        bucket2.Put(key2, value2);
-                    else
-                        bucket1.Put(key2, value2);
-                }
-
-                //watch.Start();
-                var indexes = new List<int>();
-
-                indexes.Add(bucketIndex);
-                indexes.Add(bucketIndex + buckets.Count / 2);
-
-                //watch.Stop();
-
-                foreach (var index in indexes)
-                {
-                    if ((index | (1 << bucket.LocalDepth)) == index)
-                        buckets[index] = bucket2;
-                    else
-                        buckets[index] = bucket1;
-                }
-
-
-                bucket1.LocalDepth = bucket.LocalDepth + 1;
-                bucket2.LocalDepth = bucket.LocalDepth + 1;
-
+                if (bucket.LocalDepth == globalDepth)
+                    ExpandBuckets();
+                if (bucket.LocalDepth < globalDepth)
+                    SplitBucket(bucketIndex);
             }
 
-            else
-            {
-                if (!bucket.Entries.ContainsKey(key))
-                    Count++;
-                bucket.Put(key, value);
-            }
+            if (!bucket.Entries.ContainsKey(key))
+                Count++;
+            bucket.Put(key, value);
         }
     }
 }
