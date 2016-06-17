@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using ExtendibleHashing;
+using Hashing;
 using FluentAssertions;
 using NUnit.Framework;
-using HashTable;
-using LinearHashing;
+
 
 namespace Tests
 {
     [TestFixture]
     public class HashTable_Should
     {
-        private static HashTable.IDictionary<int, string> hashTable;
+        private static Hashing.IDictionary<int, string> hashTable;
 
         [SetUp]
         public void SetUp()
