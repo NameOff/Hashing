@@ -17,7 +17,7 @@ namespace Server
             if (clientsCount < 1)
                 throw new ArgumentException();
             Dictionary = dictionary;
-            ServerInfo = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);
+            ServerInfo = new IPEndPoint(IPAddress.Any, port);
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             socket.Bind(ServerInfo);
             socket.Listen(clientsCount);
