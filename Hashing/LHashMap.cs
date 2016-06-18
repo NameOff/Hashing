@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Hashing
 {
-    public class LinearHashing<TKey, TValue> : IDictionary<TKey, TValue>
+    public class LHashMap<TKey, TValue> : IDictionary<TKey, TValue>
     {
         private class Record
         {
@@ -30,7 +30,7 @@ namespace Hashing
         private readonly int capacity;
         private List<Record> buckets;
 
-        public LinearHashing(int capacity = 2)
+        public LHashMap(int capacity = 2)
         {
             if (capacity < 0)
                 throw new ArgumentException("Capacity value should not be negative number");
