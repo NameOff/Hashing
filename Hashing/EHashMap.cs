@@ -94,7 +94,7 @@ namespace Hashing
             foreach (var key in bucket.Entries.Keys)
             {
                 var value = bucket.Get(key);
-                var hash = key.GetHashCode() & ((1 << globalDepth) - 1);
+                var hash = KeyFunc(key.GetHashCode());
 
                 if ((hash | (1 << bucket.LocalDepth)) == hash)
                     newBuckets[1].Put(key, value);
@@ -121,6 +121,10 @@ namespace Hashing
                 bucketIndex -= buckets.Count / 2;
             var bucket = buckets[bucketIndex];
 
+            if (!bucket.ContainsKey(key))
+                Count++;
+            bucket.Put(key, value);
+
             if (bucket.IsFull)
             {
                 if (bucket.LocalDepth == globalDepth)
@@ -128,10 +132,6 @@ namespace Hashing
                 if (bucket.LocalDepth < globalDepth)
                     SplitBucket(bucketIndex);
             }
-
-            if (!bucket.ContainsKey(key))
-                Count++;
-            bucket.Put(key, value);
         }
     }
 }
